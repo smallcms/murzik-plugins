@@ -10,3 +10,6 @@ Available plugins:
  - Core::Yadipyshch - Gives the appropriate response to Yadipyshch
  - Core::Zhrat - Gives the appropriate response to zhrat
  - Core::Zhraten - Gives the appropriate response to Zhraten
+
+# Docs
+For reference, see https://metacpan.org/dist/App-TeleGramma
