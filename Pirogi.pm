@@ -67,23 +67,29 @@ sub emit_fortune {
       $username = "гамнюк";
   }
 
+  my $chat_id = $msg->chat->id;
+  #my $username = $msg->from->username;
+
   #reply to user
 
   my $Forr = '';
   my $Focc = '';
-  $Focc = $self->store->hash('totals')->{total_fortunes};
+  #$Focc = $self->store->hash('totals')->{total_fortunes};
+  $Focc = $self->store->hash('counts_'.$chat_id)->{$username};
   if ($ch =~ /^\-[0-9]+/i) {
-    $Forr = "$username ".$self->_get_fortune();
+    my $g_fortune = $self->_get_fortune();
+    $Forr = "$username " . "Палучы перажог с " . $g_fortune->{text} . " (№" . $g_fortune->{index} . ") ПП:";
+    #$Forr = "$username ".$self->_get_fortune();
     $self->reply_to($msg, $Forr . $Focc, {parse_mode => 'HTML'});
     } else {
-        $Forr = "".$self->_get_fortune();
+        my $g_fortune = $self->_get_fortune();
+        $Forr = "Палучы перажог с " . $g_fortune->{text} . " (№" . $g_fortune->{index} . ") ПП:";
+        #$Forr = "".$self->_get_fortune();
         $self->reply_to($msg, $Forr . $Focc);
     }
   #$self->reply_to($msg, $self->_get_fortune());
 
   # keep some stats, separated by chat and totals
-  my $chat_id = $msg->chat->id;
-  #my $username = $msg->from->username;
 
   $self->store->hash('counts_'.$chat_id)->{$username}++;
   $self->store->hash('totals')->{total_fortunes}++;
@@ -123,7 +129,7 @@ sub add_fortune {
   #$new_fortune = "с $new_fortune" if ($new_fortune =~ /^(с\s+)?/i); # Add "с " if not present
   #$new_fortune = "с $new_fortune" unless ($new_fortune =~ /^с\s+/i);
   $new_fortune =~ s/^(с\s+|c\s+|з\s+|z\s+|со\s+|са\s+)//i;
-  $new_fortune = "с $new_fortune";
+  $new_fortune = "$new_fortune";
 
   # Save the new fortune to the fortune_path file directly
   my $fortune_path = $self->read_config->{fortune_path};
@@ -136,7 +142,17 @@ sub add_fortune {
   print $fh encode_utf8($new_fortune."\n");
   close $fh;
 
-  $self->reply_to($msg, "Новэй перажог $new_fortune дабавлин!", {parse_mode => 'HTML'});
+  my @responses = (
+    "Новэй перажог с $new_fortune довайблен!",
+    "Новы пирожог с $new_fortune дабублен!",
+    "Новый пердежок с $new_fortune дабавлин!",
+    "Nowy pieróg z $new_fortune dadano!"
+  );
+
+  my $response = $responses[rand @responses];
+
+  $self->reply_to($msg, $response, {parse_mode => 'HTML'});
+  #$self->reply_to($msg, "Новэй перажог с $new_fortune довайблен!", {parse_mode => 'HTML'});
 
   return PLUGIN_RESPONDED;
 }
@@ -159,7 +175,12 @@ sub _get_fortune {
   #my $entriesnum = sprintf "%.0f",(rand @entries);
   my $entriesnum = floor(rand @entries);
   #my $entry = 'Палучы перажог '.$entries[$entriesnum].'!!! ПП:'.( $entriesnum + 1 );
-  my $entry = 'Палучы перажог '.$entries[$entriesnum].'!!! ПП:';
+  #my $entry = 'Палучы перажог '.$entries[$entriesnum].'!!! ПП:';
+
+  my $entry = {
+    text  => $entries[$entriesnum],
+    index => $entriesnum + 1,  # номер строки массива (начиная с 1)
+  };
 
   return $entry;
 }

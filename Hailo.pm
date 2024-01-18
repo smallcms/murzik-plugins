@@ -72,6 +72,11 @@ sub hailo {
   my $text = $msg->text;
   $text =~ s/^(котэ|кот|мурзик|\@murzikby_bot)[\s,:]+//gi;
 
+  # Check if $text starts with "!"
+  if ($text =~ /^\s*!/) {
+    return PLUGIN_DECLINED;
+  }
+
   # learn from users
   $hailo->learn($text);
 
