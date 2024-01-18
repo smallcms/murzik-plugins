@@ -36,9 +36,13 @@ sub register {
     unless (-d $fp);
 
   my $fortune_command = App::TeleGramma::BotAction::Listen->new(
-    command  => '!дай',
+    command  => qr/^!дай(?:\s+мне\s+с\s+(.+))?/i,
     response => sub { $self->emit_fortune(@_) }
   );
+#  my $fortune_command = App::TeleGramma::BotAction::Listen->new(
+#    command  => '!дай',
+#    response => sub { $self->emit_fortune(@_) }
+#  );
   my $add_fortune_command = App::TeleGramma::BotAction::Listen->new(
     command  => qr/^!(добавь|дадай|dadaj|dodaj)\b/i,
     response => sub { $self->add_fortune(@_) }
@@ -74,19 +78,33 @@ sub emit_fortune {
 
   my $Forr = '';
   my $Focc = '';
-  #$Focc = $self->store->hash('totals')->{total_fortunes};
   $Focc = $self->store->hash('counts_'.$chat_id)->{$username};
+
   if ($ch =~ /^\-[0-9]+/i) {
-    my $g_fortune = $self->_get_fortune();
-    $Forr = "$username " . "Палучы перажог с " . $g_fortune->{text} . " (№" . $g_fortune->{index} . ") ПП:";
-    #$Forr = "$username ".$self->_get_fortune();
-    $self->reply_to($msg, $Forr . $Focc, {parse_mode => 'HTML'});
+    my $g_fortune;
+    if ($msg->text =~ /^!дай\sмне\sс\s(.+)/i) {
+        my $substr = $1;
+        #say "DEBUG: Substring found: $substr";
+        $g_fortune = $self->_get_fortune_with_substr($substr);
     } else {
-        my $g_fortune = $self->_get_fortune();
-        $Forr = "Палучы перажог с " . $g_fortune->{text} . " (№" . $g_fortune->{index} . ") ПП:";
-        #$Forr = "".$self->_get_fortune();
-        $self->reply_to($msg, $Forr . $Focc);
+        #say "DEBUG: No substring found";
+        $g_fortune = $self->_get_fortune();
     }
+
+    $Forr = "$username " . "Палучы перажог с " . $g_fortune->{text} . " (№" . $g_fortune->{index} . ") ПП:";
+    $self->reply_to($msg, $Forr . $Focc, {parse_mode => 'HTML'});
+  } else {
+    my $g_fortune;
+    if ($msg->text =~ /^!дай\sмне\sс\s(.+)/i) {
+        my $substr = $1;
+        $g_fortune = $self->_get_fortune_with_substr($substr);
+    } else {
+        $g_fortune = $self->_get_fortune();
+    }
+
+    $Forr = "Палучы перажог с " . $g_fortune->{text} . " (№" . $g_fortune->{index} . ") ПП:";
+    $self->reply_to($msg, $Forr . $Focc);
+  }
   #$self->reply_to($msg, $self->_get_fortune());
 
   # keep some stats, separated by chat and totals
@@ -157,7 +175,6 @@ sub add_fortune {
   return PLUGIN_RESPONDED;
 }
 
-
 sub _get_fortune {
   my $self = shift;
   my $path = $self->read_config->{fortune_path};
@@ -183,6 +200,43 @@ sub _get_fortune {
   };
 
   return $entry;
+}
+
+sub _get_fortune_with_substr {
+    my ($self, $substr) = @_;
+    my $path = $self->read_config->{fortune_path};
+
+    opendir(my $dh, $path) || die "can't opendir $path: $!";
+    my @files = grep { ! /.dat$/ && -f catfile($path, $_) } readdir($dh);
+    closedir($dh);
+
+    my @matching_entries;
+    my $total_entries = 0;
+    foreach my $file (@files) {
+        my $file_path = catfile($path, $file);
+        my $entries1   = Mojo::File->new($file_path)->slurp;
+        my $entries    = decode_utf8($entries1);
+
+        my @entries = split "\n", $entries;
+        foreach my $entry (@entries) {
+            $total_entries++;
+            if ($entry =~ /(\Q$substr\E)/i) {
+                push @matching_entries, {
+                    text  => $entry,
+                    index => $total_entries,
+                };
+            }
+        }
+    }
+
+    if (@matching_entries) {
+        my $entriesnum = int(rand @matching_entries);
+        my $entry = $matching_entries[$entriesnum];
+        return $entry;
+    }
+
+    # Если нет совпадений, возвращаем случайный пирожок
+    return $self->_get_fortune();
 }
 
 1;
