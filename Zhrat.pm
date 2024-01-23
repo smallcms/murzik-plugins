@@ -1,5 +1,5 @@
 package App::TeleGramma::Plugin::Core::Zhrat;
-$App::TeleGramma::Plugin::Core::Zhrat::VERSION = '0.14';
+$App::TeleGramma::Plugin::Core::Zhrat::VERSION = '0.15';
 # ABSTRACT: TeleGramma plugin to give Zhrat where necessary
 
 use Mojo::Base 'App::TeleGramma::Plugin::Base';
@@ -67,15 +67,15 @@ App::TeleGramma::Plugin::Core::Zhrat - TeleGramma plugin to give Zhrat where nec
 
 =head1 VERSION
 
-version 0.14
+version 0.15
 
 =head1 AUTHOR
 
-Justin Hawkins <justin@hawkins.id.au>
+smallcms <smallcms@gmail.com>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2019 by Justin Hawkins <justin@eatmorecode.com>.
+This software is copyright (c) 2024 by smallcms <smallcms@gmail.com>.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.

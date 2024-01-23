@@ -1,5 +1,5 @@
 package App::TeleGramma::Plugin::Core::Yadipyshch;
-$App::TeleGramma::Plugin::Core::Yadipyshch::VERSION = '0.14';
+$App::TeleGramma::Plugin::Core::Yadipyshch::VERSION = '0.15';
 # ABSTRACT: TeleGramma plugin to give Yadipyshch where necessary
 
 use Mojo::Base 'App::TeleGramma::Plugin::Base';
@@ -9,7 +9,6 @@ use App::TeleGramma::Constants qw/:const/;
 use File::Spec::Functions qw/catfile/;
 
 my $regex = qr/^пр[ао]с[иiі] \s* йад \s* и \s* пысч/xi;
-#$regex = qr/(a)/i;
 
 sub synopsis {
   "Gives the appropriate response to Yadipyshch"
@@ -67,15 +66,15 @@ App::TeleGramma::Plugin::Core::Yadipyshch - TeleGramma plugin to give Yadipyshch
 
 =head1 VERSION
 
-version 0.14
+version 0.15
 
 =head1 AUTHOR
 
-Justin Hawkins <justin@hawkins.id.au>
+smallcms <smallcms@gmail.com>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2019 by Justin Hawkins <justin@eatmorecode.com>.
+This software is copyright (c) 2024 by smallcms <smallcms@gmail.com>.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.

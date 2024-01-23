@@ -1,5 +1,5 @@
 package App::TeleGramma::Plugin::Core::Hailo;
-$App::TeleGramma::Plugin::Core::Hailo::VERSION = '0.01';
+$App::TeleGramma::Plugin::Core::Hailo::VERSION = '0.02';
 # ABSTRACT: TeleGramma plugin to talk with Hailo engine
 
 use strict;
@@ -23,7 +23,11 @@ sub synopsis {
 
 sub default_config {
   my $self = shift;
-  return { };
+  return {
+    enable       => 1,
+    storage_class => 'SQLite',
+    brain_path   => "/home/user/bot/brain.sqlite",
+  };
 }
 
 sub register {
@@ -39,26 +43,37 @@ sub register {
 sub hailo {
 
   my $hailo = Hailo->new;
-  $hailo->storage_class('SQLite');
-  $hailo->brain('/home/murzik/murzik/brain.sqlite');
 
   my $self = shift;
   my $msg  = shift;
 
+  # sanity checks
+  my $enable = $self->read_config->{enable};
+  return PLUGIN_NO_RESPONSE unless $enable;
+
+  my $storage_class = $self->read_config->{storage_class};
+  my $brain_path    = $self->read_config->{brain_path};
+
+  # Check storage_class
+  die "Invalid storage_class '$storage_class'. Valid values are Pg, mysql, or SQLite.\n"
+    unless $storage_class =~ /^(Pg|mysql|SQLite)$/;
+
+  # Check brain_path if it is specified
+  if ($brain_path) {
+    die "Brain file '$brain_path' does not exist.\n" unless -e $brain_path;
+  }
+
+  $hailo->storage_class($storage_class);
+  $hailo->brain($brain_path);
+
   return PLUGIN_NO_RESPONSE unless $msg->text;  # don't try to deal with anything but text
 
   my $username;
-  #if ($msg->from && $msg->from->username) {
-    #$username = '@'.$msg->from->username;
-  #}
-  #els
   if ($msg->from) {
-    #$username = $msg->from->id;
     $username = $msg->from->first_name;
     if ($msg->from->last_name) {
       $username = $msg->from->first_name . ' ' . $msg->from->last_name;
       }
-    #$username = '[' . $username . '](tg://user?id=' . $msg->from->id . ')';
     $username = '<a href="tg://user?id=' . $msg->from->id . '">' . $username . '</a>';
   }
   else {
@@ -79,17 +94,6 @@ sub hailo {
 
   # learn from users
   $hailo->learn($text);
-
-  #$text =~ s/_/\\_/gi;
-  #$text =~ s/\*/\\*/gi;
-  #$text =~ s/\[/\\[/gi;
-  ##$text =~ s/\]/\\]/gi;
-  #$text =~ s/`/\\`/gi;
-  #$text =~ s/\</&lt;/gi;
-  #$text =~ s/\>/&gt;/gi;
-  #$text =~ s/\&/&amp;/gi;
-  #$text =~ s/\"/&quot;/gi;
-  #$text = encode_entities($text);
 
   my $ch=$msg->chat->id;
   if ($ch =~ /^\-[0-9]+/i) {
@@ -222,7 +226,7 @@ App::TeleGramma::Plugin::Core::Hailo - TeleGramma plugin to talk with Hailo engi
 
 =head1 VERSION
 
-version 0.01
+version 0.02
 
 =head1 AUTHOR
 
@@ -230,7 +234,7 @@ smallcms <smallcms@gmail.com>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2019 by smallcms <smallcms@gmail.com>.
+This software is copyright (c) 2019-2024 by smallcms <smallcms@gmail.com>.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
