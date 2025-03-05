@@ -91,6 +91,8 @@ sub hailo {
   if ($text =~ /^\s*!/) {
     return PLUGIN_DECLINED;
   }
+  
+  return PLUGIN_DECLINED if $msg->edit_date;
 
   # learn from users
   $hailo->learn($text);
